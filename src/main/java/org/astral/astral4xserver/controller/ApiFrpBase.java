@@ -1,12 +1,13 @@
 package org.astral.astral4xserver.controller;
 
-import com.sun.istack.NotNull;
 import org.astral.astral4xserver.been.FrpProp;
 import org.astral.astral4xserver.been.User;
 import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.RoleRepository;
 import org.astral.astral4xserver.dao.UserRepository;
+import org.astral.astral4xserver.service.FrpService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,10 +18,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+
+@CrossOrigin
 @RefreshScope
 @RestController
 @RequestMapping("/api/frpc")
 public class ApiFrpBase {
+    @Value("7000")
+    private int bindport;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -31,6 +36,8 @@ public class ApiFrpBase {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private FrpService frpService;
     @GetMapping("/frp")
     public List<FrpProp> findByUseId(@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {

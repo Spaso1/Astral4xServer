@@ -1,16 +1,12 @@
 package org.astral.astral4xserver.controller;
 
-import com.sun.istack.NotNull;
-import org.astral.astral4xserver.been.FrpProp;
 import org.astral.astral4xserver.been.Role;
 import org.astral.astral4xserver.been.User;
-import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.RoleRepository;
 import org.astral.astral4xserver.dao.UserRepository;
 import org.astral.astral4xserver.message.ApiResponse;
 import org.astral.astral4xserver.message.LoginRequest;
 import org.astral.astral4xserver.service.DataCacheService;
-import org.astral.astral4xserver.service.FrpPropService;
 import org.astral.astral4xserver.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
-
+@CrossOrigin
 @RefreshScope
 @RequestMapping("/api/users")
 @RestController
@@ -134,10 +130,17 @@ public class ApiUserBase {
         if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build(); // 返回未认证状态
+        }
+        User currentUser = (User) authentication.getPrincipal();
+        if(!(currentUser.getId()==id)) {
+            return ResponseEntity.status(403).build();
+        }
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-
             // 更新用户名
             if (updatedUser.getUsername() != null) {
                 user.setUsername(updatedUser.getUsername());
