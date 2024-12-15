@@ -1,5 +1,9 @@
 package org.astral.astral4xserver.controller;
 
+import org.astral.astral4xserver.message.ApiResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +19,8 @@ import java.util.Date;
 @RequestMapping("/api/safe")
 @RestController
 public class ApiSecurityAuth {
+    @Value("${astral4x.server.port}")
+    private int port;
     @GetMapping("/getAuth")
     public static String getAuth() {
         // 获取当前时间并格式化
@@ -36,7 +42,10 @@ public class ApiSecurityAuth {
         String key = hash(combinedInfo);
         return key;
     }
-
+    @GetMapping("/getClientPort")
+    public ApiResponse getClientPort() {
+        return new ApiResponse(200, port+ "");
+    }
     private static String hash(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

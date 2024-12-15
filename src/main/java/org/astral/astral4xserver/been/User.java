@@ -17,6 +17,9 @@ public class User {
     private String password;
     @Column(unique = true)
     private String email;
+
+    //@Column(unique = true)
+    private String token;
     private LocalDateTime created_at;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -24,6 +27,14 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     // Getters and Setters
     public Long getId() {

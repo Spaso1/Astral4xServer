@@ -33,6 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/users/auth/**").permitAll()  // 放行邮箱验证页面
                 .antMatchers("/api/users/login").permitAll()           // 放行登录页面
                 .antMatchers("/admin/**").hasRole("ADMIN")   // 限制 /admin/** 路径只能由 ADMIN 角色访问
+                .antMatchers("/api/client/**").permitAll()//客户端交互
                 .antMatchers("/**").permitAll() // 开发时用
                 //.antMatchers("/swagger-ui/index.html", "/v2/api-docs", "/webjars/**", "/swagger-resources/**").hasRole("ADMIN")//正式使用
                 .antMatchers("/user/**").hasAnyRole("USER", "ADMIN")  // 限制 /user/** 路径只能由 USER 或 ADMIN 角色访问

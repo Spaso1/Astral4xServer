@@ -1,7 +1,1 @@
-{
-  "bindPort": 7000,
-  "auth": {
-    "method" : "token",
-    "token": "abc"
-  }
-}
+{"bindPort":7000,"auth":{"method":"token","token":"a4dca34b49f34ff60069cb451b4fd6fda25e2d1c9b7073de8697af3c9a2d1b29"}}

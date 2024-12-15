@@ -1,5 +1,6 @@
 package org.astral.astral4xserver.controller;
 
+import org.astral.astral4xserver.been.AesUtils;
 import org.astral.astral4xserver.been.Role;
 import org.astral.astral4xserver.been.User;
 import org.astral.astral4xserver.dao.RoleRepository;
@@ -66,15 +67,16 @@ public class ApiUserBase {
         return apiResponse;
     }
     @GetMapping("/auth/{url}")
-    public ApiResponse authUser(@PathVariable String url) {
+    public ApiResponse authUser(@PathVariable String url) throws Exception {
         User user = datacacheService.getData(url);
         if (user == null) {
             return new ApiResponse(400, "User not found");
         }
+        user.setToken(AesUtils.encrypt(user.getUsername(), AesUtils.generateKey(128)));
         userRepository.save(user);
         return new ApiResponse(200, "User activated successfully");
     }
-    @GetMapping("/login")
+    @PostMapping("/loginUser")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
