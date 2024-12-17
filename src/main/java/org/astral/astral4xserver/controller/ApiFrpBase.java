@@ -57,17 +57,28 @@ public class ApiFrpBase {
             return null;
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {}
+        if (authentication == null || !authentication.isAuthenticated()) {return null;}
 
         String currentUserName = authentication.getName();
         Optional<User> currentUser = userRepository.findByUsername(currentUserName);
         int id = currentUser.get().getId().intValue();
-        frpProp.setUserId(id);
+        if (!(frpProp.getId()==id)) {
+            return null;
+        }
         return frpPropRepository.save(frpProp);
     }
     @PutMapping("/frp")
     public ResponseEntity<FrpProp> updateFrpProp(@RequestBody FrpProp updatedFrpProp,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {return null;}
+
+        String currentUserName = authentication.getName();
+        Optional<User> currentUser = userRepository.findByUsername(currentUserName);
+        int id = currentUser.get().getId().intValue();
+        if (!(updatedFrpProp.getId()==id)) {
             return null;
         }
         // 从数据库中检索要更新的 FrpProp 实体
@@ -91,10 +102,28 @@ public class ApiFrpBase {
     }
     @DeleteMapping("/frp/{id}")
     public ResponseEntity<Void> deleteFrpProp(@PathVariable Long id,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {return null;}
+
+        String currentUserName = authentication.getName();
+        Optional<User> currentUser = userRepository.findByUsername(currentUserName);
+        int user_id = currentUser.get().getId().intValue();
+        FrpProp frpProp = frpPropRepository.findById(id).get();
+        if(frpProp.getUserId()!=user_id) {
+            return null;
+        }
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
         frpPropRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/frpKey")
+
+    public String getFrpKey(@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+        if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        return null;
     }
 }

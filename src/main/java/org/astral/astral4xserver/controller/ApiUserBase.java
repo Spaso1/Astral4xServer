@@ -9,6 +9,8 @@ import org.astral.astral4xserver.message.ApiResponse;
 import org.astral.astral4xserver.message.LoginRequest;
 import org.astral.astral4xserver.service.DataCacheService;
 import org.astral.astral4xserver.service.MailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -27,6 +29,7 @@ import java.util.*;
 @RequestMapping("/api/users")
 @RestController
 public class ApiUserBase {
+    private static final Logger logger = LoggerFactory.getLogger(ApiUserBase.class);
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -39,11 +42,16 @@ public class ApiUserBase {
     private DataCacheService datacacheService;
     @Autowired
     private MailService mailService;
+    @Value("${spring.to.host}")
+    private String host;
     //注册
     @PostMapping("/register")
     public ApiResponse registerUser(@RequestBody User user,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return new ApiResponse(400, "Invalid x-auth");
+        }
+        if (userRepository.existsByUsername(user.getUsername())) {
+            return new ApiResponse(400, "Username is already taken!");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         //获得一个LocalDateTime对象
@@ -61,9 +69,9 @@ public class ApiUserBase {
         ApiResponse apiResponse = new ApiResponse(200, "User registered successfully , please auth your email!");
         String finalUrl = url;
         new Thread(()->{
-            mailService.sendSimpleMail("astralpath@163.com", email, "", "欢迎注册，请访问下面链接激活账户：http://localhost:8080/api/users/auth/" + finalUrl, "");
-        });
-        System.out.println("http://localhost:8080/api/users/auth/" + url);
+            mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "欢迎注册，请访问下面链接激活账户：http://" + host+ "/api/users/auth/" + finalUrl, "http://" + host+ "/api/users/auth/" + finalUrl);
+        }).start();
+        logger.info("http://" + host+ "/api/users/auth/" + url);
         return apiResponse;
     }
     @GetMapping("/auth/{url}")
