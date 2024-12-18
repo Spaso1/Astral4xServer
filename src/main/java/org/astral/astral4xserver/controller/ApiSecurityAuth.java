@@ -15,7 +15,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-@CrossOrigin
+@CrossOrigin(origins = "https://4x.ink")
 @RequestMapping("/api/safe")
 @RestController
 public class ApiSecurityAuth {

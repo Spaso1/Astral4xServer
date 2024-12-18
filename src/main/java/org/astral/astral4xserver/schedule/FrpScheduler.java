@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.astral.astral4xserver.been.ServerConfig;
 import org.astral.astral4xserver.controller.ApiSecurityAuth;
 import org.astral.astral4xserver.service.FrpService;
+import org.astral.astral4xserver.util.DailyKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,14 +25,14 @@ public class FrpScheduler {
     private FrpService frpService;
     // 每天早上4点执行
     @Scheduled(cron = "0 0 4 * * ?")
-    public void restartFrps() {
+    public void restartFrps() throws SocketException, NoSuchAlgorithmException {
         frpService.stopFrps();
         File frpsFile = new File(".//a4xs//frplinuxamd64//frps.json");
         Gson gson = new Gson();
-        String key = getAuth();
         ServerConfig serverConfig = new ServerConfig();
         serverConfig.setBindPort(7000);
-        serverConfig.setAuth(new ServerConfig.Auth("token",key));
+        String dailyKey = DailyKeyGenerator.generateDailyKey();
+        serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
         String json = gson.toJson(serverConfig);
         try {
             PrintWriter pw = new PrintWriter(frpsFile);

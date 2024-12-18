@@ -6,6 +6,7 @@ import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.RoleRepository;
 import org.astral.astral4xserver.dao.UserRepository;
 import org.astral.astral4xserver.service.FrpService;
+import org.astral.astral4xserver.util.DailyKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -16,10 +17,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin
+@CrossOrigin(origins = "https://4x.ink")
 @RefreshScope
 @RestController
 @RequestMapping("/api/frpc")
@@ -119,11 +122,16 @@ public class ApiFrpBase {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/frpKey")
-
-    public String getFrpKey(@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+    public String getFrpKey(@RequestHeader(value = "X-Auth", required = true) String xAuth) throws SocketException, NoSuchAlgorithmException {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
-        return null;
+        return DailyKeyGenerator.generateDailyKey();
+    }
+
+    @GetMapping("/test/frpLaunchWin")
+    public String frpLaunchWin() {
+        frpService.startFrpsWin();
+        return "ok";
     }
 }

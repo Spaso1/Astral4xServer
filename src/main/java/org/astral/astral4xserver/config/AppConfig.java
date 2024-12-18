@@ -19,4 +19,8 @@ public class AppConfig {
     public TimeLimitedCache<String, Auth> time2LimitedCache() {
         return new TimeLimitedCache<>(24 * 60 * 60 * 1000); // 1天过期时间
     }
+    @Bean
+    public TimeLimitedCache<String, String> time3LimitedCache() {
+        return new TimeLimitedCache<>(5 * 60 * 1000); // 5分钟过期时间
+    }
 }

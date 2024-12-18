@@ -1,1 +1,1 @@
-"C:\Users\yaobo\Downloads\Compressed\app_CArYT\Astral4xServer\a4xs\frpwinamd64\frps.exe" -c C:\Users\yaobo\Downloads\Compressed\app_CArYT\Astral4xServer\a4xs\frpwinamd64\frps.json"
+"C:\Users\yaobo\Downloads\Compressed\app_CArYT\Astral4xServer\a4xs\frpwinamd64\frps.exe" -c C:\Users\yaobo\Downloads\Compressed\app_CArYT\Astral4xServer\a4xs\frplinuxamd64\frps.json"

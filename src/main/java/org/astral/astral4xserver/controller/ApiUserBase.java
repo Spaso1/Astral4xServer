@@ -9,6 +9,7 @@ import org.astral.astral4xserver.message.ApiResponse;
 import org.astral.astral4xserver.message.LoginRequest;
 import org.astral.astral4xserver.service.DataCacheService;
 import org.astral.astral4xserver.service.MailService;
+import org.astral.astral4xserver.service.StringCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
-@CrossOrigin
+@CrossOrigin(origins = "https://4x.ink")
 @RefreshScope
 @RequestMapping("/api/users")
 @RestController
@@ -42,6 +43,8 @@ public class ApiUserBase {
     private DataCacheService datacacheService;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private StringCacheService stringCacheService;
     @Value("${spring.to.host}")
     private String host;
     //注册
@@ -131,12 +134,11 @@ public class ApiUserBase {
 
     /**
      * @PutMapping
-     * @param id
      * @param updatedUser
      * @return
      */
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+    public ResponseEntity<User> updateUser(@RequestBody User updatedUser,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
@@ -144,11 +146,16 @@ public class ApiUserBase {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build(); // 返回未认证状态
         }
-        User currentUser = (User) authentication.getPrincipal();
-        if(!(currentUser.getId()==id)) {
-            return ResponseEntity.status(403).build();
+        try {
+            User currentUser = (User) authentication.getPrincipal();
+            if(!(currentUser.getId()== updatedUser.getId())) {
+                return ResponseEntity.status(403).build();
+            }
+        }catch (Exception e) {
+            return null;
         }
-        Optional<User> optionalUser = userRepository.findById(id);
+
+        Optional<User> optionalUser = userRepository.findById(updatedUser.getId());
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             // 更新用户名
@@ -162,6 +169,42 @@ public class ApiUserBase {
             }
 
                // 保存更新后的用户
+            return ResponseEntity.ok(userRepository.save(user));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @GetMapping("/updateNum")
+    public ApiResponse sendEmail(@RequestParam String email,@RequestParam String password,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+        if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        new Thread(() -> {
+            try {
+                String url = AesUtils.encrypt(email + new Random(1000), AesUtils.generateKey(128));
+                url = url.substring(0, 6);
+                stringCacheService.setData(email,url);
+                mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "密码更改", "http://" + host + "/api/users/updateNum?"+ "email=" + email + "&email_auth=" + url + "&password=" + password);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+        return new ApiResponse(200, "已发送邮件");
+    }
+    @GetMapping("/updateNum")
+    public ResponseEntity<User> updateUpdateNum(@RequestParam String email,@RequestParam String email_auth,@RequestParam String password) {
+        if (!stringCacheService.getData(email).equals(email_auth)) {
+            return ResponseEntity.status(400).build();
+        }
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            // 更新密码
+            if (password != null) {
+                user.setPassword(passwordEncoder.encode(password));
+            }
+
+            // 保存更新后的用户
             return ResponseEntity.ok(userRepository.save(user));
         } else {
             return ResponseEntity.notFound().build();

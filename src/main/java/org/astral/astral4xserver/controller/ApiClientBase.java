@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin
+@CrossOrigin(origins = "https://4x.ink")
 @RefreshScope
 @RequestMapping("/api/client")
 @RestController

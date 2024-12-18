@@ -9,16 +9,6 @@ import java.util.Calendar;
 import java.util.Enumeration;
 
 public class DailyKeyGenerator {
-
-    public static void main(String[] args) {
-        try {
-            String dailyKey = generateDailyKey();
-            System.out.println("Generated Daily Key: " + dailyKey);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public static String generateDailyKey() throws SocketException, NoSuchAlgorithmException {
         String macAddress = getMacAddress();
         String date = getCurrentDate();
