@@ -1,9 +1,11 @@
 package org.astral.astral4xserver.been;
 
+import org.springframework.boot.web.server.WebServer;
+
 public class ServerConfig {
     private int bindPort;
     private Auth auth;
-
+    private WebServerConfig webServer;
     // Default constructor
     public ServerConfig() {
     }
@@ -30,6 +32,14 @@ public class ServerConfig {
 
     public void setAuth(Auth auth) {
         this.auth = auth;
+    }
+
+    public WebServerConfig getWebServer() {
+        return webServer;
+    }
+
+    public void setWebServer(WebServerConfig webServer) {
+        this.webServer = webServer;
     }
 
     @Override

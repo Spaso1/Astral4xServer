@@ -21,12 +21,41 @@ public class User {
     //@Column(unique = true)
     private String token;
     private LocalDateTime created_at;
-
+    @Column(columnDefinition = "integer default 1024")
+    private int updateStream; //KB/s
+    @Column(columnDefinition = "integer default 1024")
+    private int downStream; //KB/s
+    @Column(columnDefinition = "bigint default 10000000000000")
+    private long countStream; //KB
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
+
+    public long getCountStream() {
+        return countStream;
+    }
+
+    public void setCountStream(long countStream) {
+        this.countStream = countStream;
+    }
+
+    public int getUpdateStream() {
+        return updateStream;
+    }
+
+    public void setUpdateStream(int updateStream) {
+        this.updateStream = updateStream;
+    }
+
+    public int getDownStream() {
+        return downStream;
+    }
+
+    public void setDownStream(int downStream) {
+        this.downStream = downStream;
+    }
 
     public String getToken() {
         return token;

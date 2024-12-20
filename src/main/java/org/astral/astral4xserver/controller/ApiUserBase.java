@@ -174,7 +174,7 @@ public class ApiUserBase {
             return ResponseEntity.notFound().build();
         }
     }
-    @GetMapping("/updateNum")
+    @PostMapping("/updateNum")
     public ApiResponse sendEmail(@RequestParam String email,@RequestParam String password,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;

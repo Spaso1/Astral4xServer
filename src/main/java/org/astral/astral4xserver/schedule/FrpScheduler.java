@@ -1,8 +1,13 @@
 package org.astral.astral4xserver.schedule;
 
 import com.google.gson.Gson;
-import org.astral.astral4xserver.been.ServerConfig;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.astral.astral4xserver.been.*;
 import org.astral.astral4xserver.controller.ApiSecurityAuth;
+import org.astral.astral4xserver.dao.FrpPropRepository;
+import org.astral.astral4xserver.dao.UserFrpUpdate;
 import org.astral.astral4xserver.service.FrpService;
 import org.astral.astral4xserver.util.DailyKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -17,12 +23,19 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class FrpScheduler {
     @Autowired
     private FrpService frpService;
+    @Autowired
+    private FrpPropRepository frpPropRepository;
+
+    private Map<String ,Long> streamMap = new java.util.HashMap<>();
     // 每天早上4点执行
     @Scheduled(cron = "0 0 4 * * ?")
     public void restartFrps() throws SocketException, NoSuchAlgorithmException {
@@ -33,6 +46,7 @@ public class FrpScheduler {
         serverConfig.setBindPort(7000);
         String dailyKey = DailyKeyGenerator.generateDailyKey();
         serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
+        serverConfig.setWebServer(new WebServerConfig("127.0.0.1", 7500, "asdfghjkl", "asdfghjkl"));
         String json = gson.toJson(serverConfig);
         try {
             PrintWriter pw = new PrintWriter(frpsFile);
@@ -40,6 +54,49 @@ public class FrpScheduler {
             pw.close();
         }catch (Exception e) {}
         frpService.startFrps();
+    }
+    //每5秒执行一次
+    @Scheduled(fixedRate = 10000)
+    public void updateCount() {
+        OkHttpClient client = new OkHttpClient();
+        String username = "asdfghjkl";
+        String password = "asdfghjkl";
+        // 创建 Basic Auth 字符串
+        String credentials = username + ":" + password;
+        String basicAuth = "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes());
+
+        Request request = new Request.Builder()
+                .url("http://127.0.0.1:7500/api/proxy/tcp") // 替换为实际的URL
+                .header("Authorization", basicAuth)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String res = response.body().string();
+            System.out.println(res);
+            Gson gson = new Gson();
+            FrpServerBoard frpServerBoard = gson.fromJson(res, FrpServerBoard.class);
+            List<FrpServerBoards> proxies = frpServerBoard.getProxies();
+            for (FrpServerBoards proxy : proxies) {
+                String pro_name = proxy.getName();
+                if (!streamMap.containsKey(pro_name)) {
+                    FrpProp frpProp = frpPropRepository.findByName(pro_name).orElse(null);
+                    streamMap.put(pro_name, proxy.getTodayTrafficOut());
+                    if (frpProp != null) {
+                        UserFrpUpdate.queue.add(frpProp.getUserId() + ":" + proxy.getTodayTrafficOut());
+                    }
+                } else if (!(streamMap.get(pro_name) == proxy.getTodayTrafficOut())) {
+                    FrpProp frpProp = frpPropRepository.findByName(pro_name).orElse(null);
+                    if (frpProp != null) {
+                        long change = proxy.getTodayTrafficOut() - streamMap.get(pro_name);
+                        UserFrpUpdate.queue.add(frpProp.getUserId() + ":" + change);
+                    }
+                    streamMap.put(pro_name, proxy.getTodayTrafficOut());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); // 添加打印堆栈跟踪以便调试
+        } catch (Exception e) { // 捕获其他异常
+            e.printStackTrace(); // 添加打印堆栈跟踪以便调试
+        }
     }
 
     public static String getAuth() {
