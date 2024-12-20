@@ -1,0 +1,1 @@
+"D:\4xwork\Astral4xClient\a4xs\frpwinamd64\frpc.exe" -c "D:\4xwork\Astral4xClient\a4xs\frpwinamd64\frpc.json"

@@ -1,0 +1,1 @@
+{"serverAddr":"127.0.0.1","serverPort":7000,"auth":{"method":"token","token":"00938ae00662d6fc384ca8249abbda796bcee21d2bb7d8f705101d9e872aff57"},"proxies":[{"name":"new1","type":"tcp","localIP":"127.0.0.1","localPort":8070,"remotePort":9999},{"name":"new2","type":"tcp","localIP":"127.0.0.1","localPort":9000,"remotePort":9000}]}
