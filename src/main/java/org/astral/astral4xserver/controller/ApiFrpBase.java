@@ -65,7 +65,7 @@ public class ApiFrpBase {
         String currentUserName = authentication.getName();
         Optional<User> currentUser = userRepository.findByUsername(currentUserName);
         int id = currentUser.get().getId().intValue();
-        if (!(frpProp.getId()==id)) {
+        if (!(frpProp.getUserId()==id)) {
             return null;
         }
         return frpPropRepository.save(frpProp);

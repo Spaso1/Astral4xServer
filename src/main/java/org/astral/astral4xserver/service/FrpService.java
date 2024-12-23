@@ -27,7 +27,6 @@ public class FrpService {
     public void stopFrps() {
         executeCommand(".//a4xs//stop-frps.sh");
     }
-
     private void executeCommand(String command) {
         ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
         try {
