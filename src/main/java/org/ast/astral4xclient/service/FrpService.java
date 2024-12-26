@@ -13,73 +13,86 @@ import java.util.concurrent.TimeUnit;
 
 public class FrpService implements Runnable {
     private ArrayList<String> commandList = new ArrayList<>();
-    private static Process process;
+    public static Process process;
+    public static int status = 100;
+    public static boolean flag = true;
+
     public void run() {
         updateJSON();
-        executeExternalExe();
+        try {
+            executeExternalExe();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void executeExternalExe() {
+    private void executeExternalExe() throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder(".//a4xs//start.bat");
-        Process process = null;
         try {
             process = processBuilder.start();
-            this.process = process;
             // 读取进程的输出流
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                commandList.add(line);
-                System.out.println(line);
+            status = 200;
+            System.out.println("Process start1");
+            while (flag) {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println("Thread was interrupted, Failed to complete operation");
+                    break;
+                }
             }
-
             // 等待进程结束
             int exitCode = process.waitFor();
             System.out.println("Process exited with code " + exitCode);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
+            status = 400;
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Thread was interrupted, Failed to complete operation");
         } finally {
             if (process != null) {
-                process.destroy();
+                killPlainProcess();
             }
+            System.out.println("Process end");
         }
     }
+
     private void updateJSON() {
         File jsonFile = new File("./a4xs/frpwinamd64/frpc.json");
-        try {
-            PrintWriter printWriter = new PrintWriter(jsonFile);
+        try (PrintWriter printWriter = new PrintWriter(jsonFile)) {
             Gson gson = new Gson();
             printWriter.println(gson.toJson(ApiClient.frpJSON));
-            printWriter.close();
-        }catch (Exception e ) {
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
-    public static void killPlainProcess() throws Exception {
 
-        Field f = process.getClass().getDeclaredField("pid");
-        f.setAccessible(true);
-        long pid = f.getLong(process) + 1;
-        killChildProcess(pid);
-        process.destroy();
+    public static void killPlainProcess() throws Exception {
+        try {
+            String processName = "frpc.exe"; // 替换为你要终止的进程名称
+            List<ProcessHandle> allProcesses = ProcessHandle.allProcesses().toList();
+
+            for (ProcessHandle process : allProcesses) {
+                if (process.info().command().map(cmd -> cmd.contains(processName)).orElse(false)) {
+                    System.out.println("Found process: " + process.info().command());
+                    process.destroy();
+                    System.out.println("Terminated process: " + process.info().command());
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
-     * mind here, the process usd for call the kill should be clear too!!
+     * mind here, the process used for call the kill should be clear too!!
      *
      * @param pidNum
      */
     private static void killChildProcess(long pidNum) throws Exception {
-        String cmd = "kill -15 " + pidNum;
-        try {
-            Process killProcess = null;
-            killProcess = Runtime.getRuntime().exec(cmd);
-            killProcess.waitFor();
-            TimeUnit.MILLISECONDS.sleep(100);
-            killProcess.destroy();
-        } catch (IOException | InterruptedException e) {
-            throw e;
-        }
+        // No need to implement this method separately for Windows
+        // The taskkill command with /F flag will terminate the process and its children
     }
-
 }

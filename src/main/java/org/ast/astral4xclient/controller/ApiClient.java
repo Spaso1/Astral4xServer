@@ -42,6 +42,9 @@ public class ApiClient {
         FrpMessage frpMessage = gson.fromJson(postResponse, FrpMessage.class);
         this.frpMessage = frpMessage;
         System.out.println(postResponse);
+        if(postResponse.contains("400")) {
+            return new ApiMessage(1, "auth错误");
+        }
         ApiClient.auth = auth;
         return new ApiMessage(0, "ok");
     }
@@ -82,18 +85,60 @@ public class ApiClient {
         }
         return apiMessage;
     }
+    @GetMapping("/status")
+    public ApiMessage status() throws IOException {
+        ApiMessage apiMessage = new ApiMessage(0, "ok");
+        apiMessage.setMessage("{Auth:" + auth.getToken() + ",Status:" + FrpService.status + "}");
+        return apiMessage;
+    }
     @GetMapping("/update")
     public ApiMessage update() throws Exception {
-        Gson gson = new Gson();
+        killPlainProcess();
+        {
+            Gson gson = new Gson();
+            OkHttp3 okHttp3 = new OkHttp3();
+            String json = gson.toJson(auth);
+            String head = okHttp3.sendRequest("http://127.0.0.1:8070/api/safe/getAuth", "GET", null, null);
+            Map<String, String> map = new HashMap<>();
+            map.put("X-Auth", head);
+            String postResponse = okHttp3.sendRequest("http://127.0.0.1:8070/api/client/frp", "POST", map, json);
+            FrpMessage frpMessage = gson.fromJson(postResponse, FrpMessage.class);
+            this.frpMessage = frpMessage;
+            System.out.println(postResponse);
+            if(postResponse.contains("400")) {
+                return new ApiMessage(1, "auth错误");
+            }
+        }
+        System.out.println("更新令牌");
+        ApiMessage apiMessage = new ApiMessage(0, "ok");
         OkHttp3 okHttp3 = new OkHttp3();
-        String json = gson.toJson(auth);
         String head = okHttp3.sendRequest("http://127.0.0.1:8070/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String postResponse = okHttp3.sendRequest("http://127.0.0.1:8070/api/client/frp", "POST", map, json);
-        FrpMessage frpMessage = gson.fromJson(postResponse, FrpMessage.class);
-        this.frpMessage = frpMessage;
-        killPlainProcess();
-        return launch();
+        String key = okHttp3.sendRequest("http://127.0.0.1:8070/api/frpc/frpKey", "GET", map, null);
+        frpJSON = new FrpJSON();
+        frpJSON.setServerAddr("127.0.0.1");
+        frpJSON.setServerPort(7000);
+        AuthIn authIn = new AuthIn();
+        authIn.setMethod("token");
+        authIn.setToken(key);
+        //authIn.setToken("a4dca34b49f34ff60069cb451b4fd6fda25e2d1c9b7073de8697af3c9a2d1b29");
+        frpJSON.setAuth(authIn);
+        List<FrpProp> data = frpMessage.getData();
+        List<proxy> proxies = new ArrayList<>();
+        for (FrpProp frpProp : data) {
+            proxy proxy = new proxy();
+            proxy.setName(frpProp.getName());
+            proxy.setType(frpProp.getType());
+            proxy.setLocalIP(frpProp.getLocalIP());
+            proxy.setLocalPort(frpProp.getLocalPort());
+            proxy.setRemotePort(frpProp.getRemotePort());
+            proxies.add(proxy);
+        }
+        frpJSON.setProxies(proxies);
+        service = new FrpService();
+        thread = new Thread(service);
+        thread.start();
+        return apiMessage;
     }
 }
