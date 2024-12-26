@@ -78,4 +78,7 @@ public class FrpProp {
     public void setRemotePort(int remotePort) {
         this.remotePort = remotePort;
     }
+    public boolean allisnotNull() {
+        return (this.name != null && this.type != null && this.localIP != null && this.localPort != 0 && this.remotePort != 0);
+    }
 }

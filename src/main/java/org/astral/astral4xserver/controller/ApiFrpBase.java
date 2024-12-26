@@ -57,7 +57,10 @@ public class ApiFrpBase {
     @PostMapping("/frp")
     public FrpProp saveFrpProp(@RequestBody FrpProp frpProp,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
-            return null;
+            return new FrpProp();
+        }
+        if(!frpProp.allisnotNull()) {
+            return new FrpProp();
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {return null;}
@@ -73,6 +76,9 @@ public class ApiFrpBase {
     @PutMapping("/frp")
     public ResponseEntity<FrpProp> updateFrpProp(@RequestBody FrpProp updatedFrpProp,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        if(!updatedFrpProp.allisnotNull()) {
             return null;
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

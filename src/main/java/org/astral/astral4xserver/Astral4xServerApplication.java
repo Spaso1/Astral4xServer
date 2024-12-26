@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 @EnableScheduling
 public class Astral4xServerApplication {
     private static FrpService frpService = new FrpService();
+    public static String frp_host = "127.0.0.1";
     public static void main(String[] args) throws SocketException, NoSuchAlgorithmException {
         new Thread(()->{
             try {
@@ -42,7 +43,7 @@ public class Astral4xServerApplication {
         serverConfig.setBindPort(7000);
         String dailyKey = DailyKeyGenerator.generateDailyKey();
         serverConfig.setAuth(new ServerConfig.Auth("token", dailyKey));
-        serverConfig.setWebServer(new WebServerConfig("127.0.0.1", 7500, "asdfghjkl", "asdfghjkl"));
+        serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
         String json = gson.toJson(serverConfig);
         try {
             PrintWriter pw = new PrintWriter(frpsFile);

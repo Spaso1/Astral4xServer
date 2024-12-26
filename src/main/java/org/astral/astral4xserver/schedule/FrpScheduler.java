@@ -28,13 +28,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static org.astral.astral4xserver.Astral4xServerApplication.frp_host;
+
 @Component
 public class FrpScheduler {
     @Autowired
     private FrpService frpService;
     @Autowired
     private FrpPropRepository frpPropRepository;
-
     private Map<String ,Long> streamMap = new java.util.HashMap<>();
     // 每天早上4点执行
     @Scheduled(cron = "0 0 4 * * ?")
@@ -46,7 +47,7 @@ public class FrpScheduler {
         serverConfig.setBindPort(7000);
         String dailyKey = DailyKeyGenerator.generateDailyKey();
         serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
-        serverConfig.setWebServer(new WebServerConfig("127.0.0.1", 7500, "asdfghjkl", "asdfghjkl"));
+        serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
         String json = gson.toJson(serverConfig);
         try {
             PrintWriter pw = new PrintWriter(frpsFile);
@@ -66,7 +67,7 @@ public class FrpScheduler {
         String basicAuth = "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes());
 
         Request request = new Request.Builder()
-                .url("http://127.0.0.1:7500/api/proxy/tcp") // 替换为实际的URL
+                .url("http://" + frp_host + ":7500/api/proxy/tcp")
                 .header("Authorization", basicAuth)
                 .build();
         try (Response response = client.newCall(request).execute()) {

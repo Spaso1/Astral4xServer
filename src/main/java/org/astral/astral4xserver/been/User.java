@@ -21,20 +21,30 @@ public class User {
     //@Column(unique = true)
     private String token;
     private LocalDateTime created_at;
-    @Column(columnDefinition = "integer default 1024")
-    private int updateStream; //KB/s
-    @Column(columnDefinition = "integer default 1024")
-    private int downStream; //KB/s
+    @Column(columnDefinition = "integer default 5242880")
+    private int updateStream; //b/s
+    @Column(columnDefinition = "integer default 5242880")
+    private int downStream; //b/s
     @Column(columnDefinition = "bigint default 10000000000000")
-    private long countStream; //KB
+    private long countStream; //b
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
+    @Column(columnDefinition = "integer default 5")
+    private int max_frp;
 
     public long getCountStream() {
         return countStream;
+    }
+
+    public int getMax_frp() {
+        return max_frp;
+    }
+
+    public void setMax_frp(int max_frp) {
+        this.max_frp = max_frp;
     }
 
     public void setCountStream(long countStream) {

@@ -17,7 +17,12 @@ public class FrpService {
     private List<Process> processes = new ArrayList<>();
 
     public void startFrps() {
-        executeCommand(".//a4xs//start-frps.sh");
+        String sys = System.getProperty("os.name");
+        if (sys.contains("Windows")) {
+            startFrpsWin();
+        } else {
+            executeCommand(".//a4xs//stop-frps.sh");
+        }
     }
 
     public void startFrpsWin() {
@@ -25,7 +30,7 @@ public class FrpService {
     }
 
     public void stopFrps() {
-        executeCommand(".//a4xs//stop-frps.sh");
+        killAllProcesses();
     }
     private void executeCommand(String command) {
         ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
@@ -53,6 +58,7 @@ public class FrpService {
 
     public void killAllProcesses() {
         String sys = System.getProperty("os.name");
+        System.out.println("Kill all processes");
         if (sys.contains("Windows")) {
             terminateProcessByPortWin(7000);
         } else {
@@ -60,51 +66,96 @@ public class FrpService {
         }
     }
     public void terminateProcessByPortWin(int port) {
+        System.out.println("Killing process on port " + port);
         try {
-            // 获取监听指定端口的进程ID
-            String netstatCmd = "netstat -ano | findstr :" + port;
-            Process netstatProcess = Runtime.getRuntime().exec(netstatCmd);
-            InputStream inputStream = netstatProcess.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            ProcessBuilder netstatBuilder = new ProcessBuilder("cmd.exe", "/c", "netstat -ano | findstr :" + port);
+            Process netstatProcess = netstatBuilder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(netstatProcess.getInputStream()));
             String line;
+            System.out.println("Executing command: " + netstatBuilder.command());
             while ((line = reader.readLine()) != null) {
+                System.out.println(line);
                 // 提取 PID
-                String[] parts = line.split("\\s+");
-                if (parts.length > 0) {
-                    String pid = parts[parts.length - 1];
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length > 4) {
+                    String pid = parts[4];
                     // 使用 taskkill 终止进程
-                    String taskkillCmd = "taskkill /PID " + pid + " /F";
-                    Process taskkillProcess = Runtime.getRuntime().exec(taskkillCmd);
-                    taskkillProcess.waitFor();
-                    System.out.println("Terminated process with PID: " + pid);
+                    ProcessBuilder taskkillBuilder = new ProcessBuilder("taskkill", "/PID", pid, "/F");
+                    Process taskkillProcess = taskkillBuilder.start();
+                    // 读取 taskkill 输出
+                    BufferedReader taskkillReader = new BufferedReader(new InputStreamReader(taskkillProcess.getInputStream()));
+                    String taskkillLine;
+                    while ((taskkillLine = taskkillReader.readLine()) != null) {
+                        System.out.println(taskkillLine);
+                    }
+                    // 等待 taskkill 执行完成
+                    int exitCode = taskkillProcess.waitFor();
+                    if (exitCode == 0) {
+                        System.out.println("Terminated process with PID: " + pid);
+                    } else {
+                        System.err.println("Failed to terminate process with PID: " + pid);
+                    }
                 }
+            }
+
+            // 等待 netstat 命令执行完成
+            int netstatExitCode = netstatProcess.waitFor();
+            if (netstatExitCode != 0) {
+                System.err.println("netstat command failed with exit code: " + netstatExitCode);
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
+
     public void terminateProcessByPortLinux(int port) {
+        System.out.println("Killing process on port " + port);
         try {
-            // 获取监听指定端口的进程ID
-            String netstatCmd = "netstat -apn | grep " + port;
-            Process netstatProcess = Runtime.getRuntime().exec(netstatCmd);
-            InputStream inputStream = netstatProcess.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            // 使用 ProcessBuilder 执行 netstat 命令
+            ProcessBuilder netstatBuilder = new ProcessBuilder("sh", "-c", "netstat -apn | grep " + port);
+            Process netstatProcess = netstatBuilder.start();
+
+            // 读取 netstat 输出
+            BufferedReader reader = new BufferedReader(new InputStreamReader(netstatProcess.getInputStream()));
             String line;
+            System.out.println("Executing command: " + netstatBuilder.command());
+
             while ((line = reader.readLine()) != null) {
+                System.out.println(line);
                 // 提取 PID
-                String[] parts = line.split("\\s+");
-                if (parts.length > 0) {
-                    String pid = parts[parts.length - 1].split("//")[0];
-                    // 使用 taskkill 终止进程
-                    String taskkillCmd = "kill" + pid;
-                    Process taskkillProcess = Runtime.getRuntime().exec(taskkillCmd);
-                    taskkillProcess.waitFor();
-                    System.out.println("Terminated process with PID: " + pid);
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length > 6) {
+                    String pid = parts[6].split("/")[0];
+
+                    // 使用 kill 终止进程
+                    ProcessBuilder killBuilder = new ProcessBuilder("kill", "-9", pid);
+                    Process killProcess = killBuilder.start();
+
+                    // 读取 kill 输出
+                    BufferedReader killReader = new BufferedReader(new InputStreamReader(killProcess.getInputStream()));
+                    String killLine;
+                    while ((killLine = killReader.readLine()) != null) {
+                        System.out.println(killLine);
+                    }
+
+                    // 等待 kill 执行完成
+                    int exitCode = killProcess.waitFor();
+                    if (exitCode == 0) {
+                        System.out.println("Terminated process with PID: " + pid);
+                    } else {
+                        System.err.println("Failed to terminate process with PID: " + pid);
+                    }
                 }
+            }
+
+            // 等待 netstat 命令执行完成
+            int netstatExitCode = netstatProcess.waitFor();
+            if (netstatExitCode != 0) {
+                System.err.println("netstat command failed with exit code: " + netstatExitCode);
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
+
 }

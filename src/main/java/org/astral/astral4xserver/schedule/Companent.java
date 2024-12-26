@@ -15,6 +15,8 @@ import java.io.PrintWriter;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 
+import static org.astral.astral4xserver.Astral4xServerApplication.frp_host;
+
 @Component
 @ComponentScan
 public class Companent implements CommandLineRunner {
@@ -35,7 +37,7 @@ public class Companent implements CommandLineRunner {
         serverConfig.setBindPort(7000);
         String dailyKey = DailyKeyGenerator.generateDailyKey();
         serverConfig.setAuth(new ServerConfig.Auth("token", dailyKey));
-        serverConfig.setWebServer(new WebServerConfig("127.0.0.1", 7500, "asdfghjkl", "asdfghjkl"));
+        serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
         String json = gson.toJson(serverConfig);
         try {
             PrintWriter pw = new PrintWriter(frpsFile);
@@ -44,7 +46,7 @@ public class Companent implements CommandLineRunner {
         } catch (Exception e) {
             e.printStackTrace(); // 添加异常处理
         }
-        frpService.startFrpsWin();
-        //frpService.startFrps();
+        //frpService.startFrpsWin();
+        frpService.startFrps();
     }
 }
