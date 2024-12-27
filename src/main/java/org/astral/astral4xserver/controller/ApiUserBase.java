@@ -1,6 +1,7 @@
 package org.astral.astral4xserver.controller;
 
 import org.astral.astral4xserver.been.AesUtils;
+import org.astral.astral4xserver.been.Auth;
 import org.astral.astral4xserver.been.Role;
 import org.astral.astral4xserver.been.User;
 import org.astral.astral4xserver.dao.RoleRepository;
@@ -25,6 +26,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static org.astral.astral4xserver.controller.ApiClientBase.authCacheService;
+
+
 @CrossOrigin(origins = "https://4x.ink")
 @RefreshScope
 @RequestMapping("/api/users")
@@ -117,14 +122,19 @@ public class ApiUserBase {
 
         String currentUserName = authentication.getName();
         Optional<User> currentUser = userRepository.findByUsername(currentUserName);
-
-        if (currentUser.isPresent()) {
-            return ResponseEntity.ok(currentUser.get());
-        } else {
-            return ResponseEntity.status(404).build(); // 返回用户未找到状态
-        }
+        return currentUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).build());
     }
-
+    @PostMapping("/findByAuth")
+    public ResponseEntity<User> findByAuth(@RequestBody Auth auth, @RequestHeader(value = "X-Auth", required = true) String xAuth) {
+        if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        if (!xAuth.equals(ApiSecurityAuth.getAuth())) return null;
+        Auth auth1 = authCacheService.getData(auth.getToken());
+        if(auth1==null) return null;
+        Optional<User> user = userRepository.findByToken(auth1.getToken());
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).build());
+    }
     /**
      *     @DeleteMapping("/{id}")
      *     public void deleteUser(@PathVariable long id) {
@@ -162,13 +172,11 @@ public class ApiUserBase {
             if (updatedUser.getUsername() != null) {
                 user.setUsername(updatedUser.getUsername());
             }
-
             // 更新密码
             if (updatedUser.getPassword() != null) {
                 user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
-
-               // 保存更新后的用户
+            // 保存更新后的用户
             return ResponseEntity.ok(userRepository.save(user));
         } else {
             return ResponseEntity.notFound().build();

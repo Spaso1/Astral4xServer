@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional
     @Query("UPDATE User u SET u.countStream = ?1 WHERE u.id = ?2")
     void updateUserCountStream(long countStream, Long id);
+
+    Optional<User> findByToken(String token);
 }

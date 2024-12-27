@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthCacheService {
     @Autowired
-    private TimeLimitedCache<String, Auth> time2LimitedCache;
+    private TimeLimitedCache<String, Auth> time2LimitedCache = new TimeLimitedCache<>( 1000 * 60 * 5);
 
     public void setData(String key, Auth value) {
         time2LimitedCache.put(key, value);
