@@ -1,9 +1,11 @@
 package org.ast.astral4xclient.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.ast.astral4xclient.been.ApiMessage;
 import org.ast.astral4xclient.been.Auth;
 import org.ast.astral4xclient.been.FrpProp;
+import org.ast.astral4xclient.been.FrpServer;
 import org.ast.astral4xclient.frp.AuthIn;
 import org.ast.astral4xclient.frp.FrpJSON;
 import org.ast.astral4xclient.frp.proxy;
@@ -20,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.ast.astral4xclient.Astral4xClientApplication.host_web;
+import static org.ast.astral4xclient.Astral4xClientApplication.port_web;
 import static org.ast.astral4xclient.service.FrpService.killPlainProcess;
 
 @RestController
@@ -35,10 +39,10 @@ public class ApiClient {
         Gson gson = new Gson();
         OkHttp3 okHttp3 = new OkHttp3();
         String json = gson.toJson(auth);
-        String head = okHttp3.sendRequest("http://127.0.0.1:8070/api/safe/getAuth", "GET", null, null);
+        String head = okHttp3.sendRequest( host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String postResponse = okHttp3.sendRequest("http://127.0.0.1:8070/api/client/frp", "POST", map, json);
+        String postResponse = okHttp3.sendRequest(host_web + ":"+port_web + "/api/client/frp", "POST", map, json);
         FrpMessage frpMessage = gson.fromJson(postResponse, FrpMessage.class);
         this.frpMessage = frpMessage;
         System.out.println(postResponse);
@@ -52,13 +56,13 @@ public class ApiClient {
     public ApiMessage launch() throws IOException {
         ApiMessage apiMessage = new ApiMessage(0, "ok");
         OkHttp3 okHttp3 = new OkHttp3();
-        String head = okHttp3.sendRequest("http://127.0.0.1:8070/api/safe/getAuth", "GET", null, null);
+        String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String key = okHttp3.sendRequest("http://127.0.0.1:8070/api/frpc/frpKey", "GET", map, null);
+        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, null);
         frpJSON = new FrpJSON();
-        frpJSON.setServerAddr("127.0.0.1");
-        frpJSON.setServerPort(7000);
+        frpJSON.setServerAddr(returnHost().split(",")[0]);
+        frpJSON.setServerPort(Integer.parseInt(returnHost().split(":")[1]));
         AuthIn authIn = new AuthIn();
         authIn.setMethod("token");
         authIn.setToken(key);
@@ -98,10 +102,10 @@ public class ApiClient {
             Gson gson = new Gson();
             OkHttp3 okHttp3 = new OkHttp3();
             String json = gson.toJson(auth);
-            String head = okHttp3.sendRequest("http://127.0.0.1:8070/api/safe/getAuth", "GET", null, null);
+            String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
             Map<String, String> map = new HashMap<>();
             map.put("X-Auth", head);
-            String postResponse = okHttp3.sendRequest("http://127.0.0.1:8070/api/client/frp", "POST", map, json);
+            String postResponse = okHttp3.sendRequest(host_web + ":"+port_web + "/api/client/frp", "POST", map, json);
             FrpMessage frpMessage = gson.fromJson(postResponse, FrpMessage.class);
             this.frpMessage = frpMessage;
             System.out.println(postResponse);
@@ -112,13 +116,13 @@ public class ApiClient {
         System.out.println("更新令牌");
         ApiMessage apiMessage = new ApiMessage(0, "ok");
         OkHttp3 okHttp3 = new OkHttp3();
-        String head = okHttp3.sendRequest("http://127.0.0.1:8070/api/safe/getAuth", "GET", null, null);
+        String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String key = okHttp3.sendRequest("http://127.0.0.1:8070/api/frpc/frpKey", "GET", map, null);
+        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, null);
         frpJSON = new FrpJSON();
-        frpJSON.setServerAddr("127.0.0.1");
-        frpJSON.setServerPort(7000);
+        frpJSON.setServerAddr(returnHost().split(",")[0]);
+        frpJSON.setServerPort(Integer.parseInt(returnHost().split(":")[1]));
         AuthIn authIn = new AuthIn();
         authIn.setMethod("token");
         authIn.setToken(key);
@@ -140,5 +144,14 @@ public class ApiClient {
         thread = new Thread(service);
         thread.start();
         return apiMessage;
+    }
+    public static String returnHost() throws IOException {
+        OkHttp3 okHttp3 = new OkHttp3();
+        String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
+        Map<String, String> map = new HashMap<>();
+        map.put("X-Auth", head);
+        String postResponse = okHttp3.sendRequest(host_web + ":"+port_web + "/api/client/frpSer", "GET", map, new Gson().toJson(auth));
+        List<FrpServer> frpServers = new Gson().fromJson(postResponse, new TypeToken<List<FrpServer>>(){}.getType());
+        return frpServers.get(0).getIp() + "," + frpServers.get(0).getPort();
     }
 }

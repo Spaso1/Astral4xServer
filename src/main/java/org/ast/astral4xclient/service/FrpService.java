@@ -33,6 +33,14 @@ public class FrpService implements Runnable {
             // 读取进程的输出流
             status = 200;
             System.out.println("Process start1");
+            File file = new File(".//a4xs//frpwinamd64//frpc.json");
+            if (file.exists()) {
+                file.delete();
+            }
+            file = new File(".//a4xs//frplinuxamd64//frpc.json");
+            if (file.exists()) {
+                file.delete();
+            }
             while (flag) {
                 try {
                     TimeUnit.SECONDS.sleep(1);
