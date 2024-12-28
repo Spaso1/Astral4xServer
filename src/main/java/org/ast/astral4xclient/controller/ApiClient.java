@@ -11,6 +11,7 @@ import org.ast.astral4xclient.frp.FrpJSON;
 import org.ast.astral4xclient.frp.proxy;
 import org.ast.astral4xclient.message.AuthApiMessage;
 import org.ast.astral4xclient.message.FrpMessage;
+import org.ast.astral4xclient.message.FrpServerMessage;
 import org.ast.astral4xclient.service.FrpService;
 import org.ast.astral4xclient.util.OkHttp3;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,7 @@ public class ApiClient {
         String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, null);
         frpJSON = new FrpJSON();
         frpJSON.setServerAddr(returnHost().split(",")[0]);
-        frpJSON.setServerPort(Integer.parseInt(returnHost().split(":")[1]));
+        frpJSON.setServerPort(Integer.parseInt(returnHost().split(",")[1]));
         AuthIn authIn = new AuthIn();
         authIn.setMethod("token");
         authIn.setToken(key);
@@ -122,7 +123,7 @@ public class ApiClient {
         String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, null);
         frpJSON = new FrpJSON();
         frpJSON.setServerAddr(returnHost().split(",")[0]);
-        frpJSON.setServerPort(Integer.parseInt(returnHost().split(":")[1]));
+        frpJSON.setServerPort(Integer.parseInt(returnHost().split(",")[1]));
         AuthIn authIn = new AuthIn();
         authIn.setMethod("token");
         authIn.setToken(key);
@@ -150,8 +151,9 @@ public class ApiClient {
         String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String postResponse = okHttp3.sendRequest(host_web + ":"+port_web + "/api/client/frpSer", "GET", map, new Gson().toJson(auth));
-        List<FrpServer> frpServers = new Gson().fromJson(postResponse, new TypeToken<List<FrpServer>>(){}.getType());
-        return frpServers.get(0).getIp() + "," + frpServers.get(0).getPort();
+        String postResponse = okHttp3.sendRequest(host_web + ":"+port_web + "/api/client/frpSer", "POST", map, new Gson().toJson(auth));
+        System.out.println(postResponse);
+        FrpServerMessage frpServers = new Gson().fromJson(postResponse, FrpServerMessage.class);
+        return frpServers.getFrpServers().get(0).getIp() + "," + frpServers.getFrpServers().get(0).getPort();
     }
 }

@@ -28,23 +28,26 @@ public class FrpService implements Runnable {
 
     private void executeExternalExe() throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder(".//a4xs//start.bat");
+        System.out.println("Process start");
         try {
             process = processBuilder.start();
             // 读取进程的输出流
             status = 200;
             System.out.println("Process start1");
-            File file = new File(".//a4xs//frpwinamd64//frpc.json");
-            if (file.exists()) {
-                file.delete();
-            }
-            file = new File(".//a4xs//frplinuxamd64//frpc.json");
-            if (file.exists()) {
-                file.delete();
-            }
+
             while (flag) {
                 try {
+                    File file = new File(".//a4xs//frpwinamd64//frpc.json");
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                    file = new File(".//a4xs//frplinuxamd64//frpc.json");
+                    if (file.exists()) {
+                        file.delete();
+                    }
                     TimeUnit.SECONDS.sleep(1);
                 } catch (InterruptedException e) {
+
                     Thread.currentThread().interrupt();
                     System.err.println("Thread was interrupted, Failed to complete operation");
                     break;
