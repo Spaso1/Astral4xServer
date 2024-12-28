@@ -13,6 +13,8 @@ public class FireWall {
     public static void openPort(int port) {
         if (isWindows()) {
             executeNetshCommand("add", port);
+        } else if (isUsingFirewalld()) {
+            executeFirewallCmdCommand("--add-port", port, "--permanent");
         } else {
             executeIptablesCommand("-A", port);
         }
@@ -21,6 +23,8 @@ public class FireWall {
     public static void closePort(int port) {
         if (isWindows()) {
             executeNetshCommand("delete", port);
+        } else if (isUsingFirewalld()) {
+            executeFirewallCmdCommand("--remove-port", port, "--permanent");
         } else {
             executeIptablesCommand("-D", port);
         }
@@ -50,6 +54,25 @@ public class FireWall {
         }
     }
 
+    private static void executeFirewallCmdCommand(String action, int port, String permanent) {
+        try {
+            String[] command = {"sudo", "firewall-cmd", action, port + "/tcp", permanent};
+            Process process = new ProcessBuilder(command).start();
+            logProcessOutput(process);
+            int exitCode = process.waitFor();
+            logger.info("firewall-cmd command exited with code {}", exitCode);
+
+            // 重新加载 firewalld 配置
+            String[] reloadCommand = {"sudo", "firewall-cmd", "--reload"};
+            process = new ProcessBuilder(reloadCommand).start();
+            logProcessOutput(process);
+            exitCode = process.waitFor();
+            logger.info("firewall-cmd reload command exited with code {}", exitCode);
+        } catch (IOException | InterruptedException e) {
+            logger.error("Error executing firewall-cmd command", e);
+        }
+    }
+
     private static void executeNetshCommand(String action, int port) {
         try {
             if (action.equals("delete")) {
@@ -57,7 +80,7 @@ public class FireWall {
                 new ProcessBuilder(command).start();
                 return;
             }
-            String[] command = {"netsh", "advfirewall", "firewall", action, "rule", "name=Port" + port, "dir=in", "action=allow", "protocol=TCP", "localport=" + port};
+            String[] command = {"netsh", "advfirewall", "firewall", action, "rule", "name=Port" + port};
             Process process = new ProcessBuilder(command).start();
             logProcessOutput(process);
             int exitCode = process.waitFor();
@@ -81,6 +104,19 @@ public class FireWall {
 
     private static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("win");
+    }
+
+    private static boolean isUsingFirewalld() {
+        try {
+            String[] command = {"firewall-cmd", "--state"};
+            Process process = new ProcessBuilder(command).start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line = reader.readLine();
+            return "running".equalsIgnoreCase(line);
+        } catch (IOException e) {
+            logger.error("Error checking firewall-cmd state", e);
+            return false;
+        }
     }
 
     public static void main(String[] args) {
