@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users" ,indexes = {
+        @Index(name = "id", columnList = "id")
+        ,@Index(name = "email", columnList = "email")
+})
 public class User {
 
     @Id

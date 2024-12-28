@@ -1,14 +1,22 @@
 package org.astral.astral4xserver.been;
 
+import com.sun.istack.NotNull;
+
 import javax.persistence.*;
 
 @Entity
-@Table(name = "frps")
+@Table(name = "frps" ,indexes = {
+        @Index(name = "userId", columnList = "userId")
+        ,@Index(name = "id", columnList = "id")
+
+})
 public class FrpProp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
     private int userId;
+    @NotNull
     private String name;
     private String type;
     private String localIP;

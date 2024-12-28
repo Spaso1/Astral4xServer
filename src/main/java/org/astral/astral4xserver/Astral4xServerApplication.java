@@ -3,6 +3,7 @@ package org.astral.astral4xserver;
 import com.google.gson.Gson;
 import org.astral.astral4xserver.been.ServerConfig;
 import org.astral.astral4xserver.been.WebServerConfig;
+import org.astral.astral4xserver.service.FireWallService;
 import org.astral.astral4xserver.service.FrpService;
 import org.astral.astral4xserver.util.DailyKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,8 @@ import java.security.NoSuchAlgorithmException;
 @EnableDiscoveryClient
 @EnableScheduling
 public class Astral4xServerApplication {
+    @Autowired
+    private FireWallService fireWallService;
     private static FrpService frpService = new FrpService();
     public static String frp_host = "127.0.0.1";
     public static void main(String[] args) throws SocketException, NoSuchAlgorithmException {
@@ -56,7 +59,9 @@ public class Astral4xServerApplication {
         //frpService.startFrps();
     }
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() throws Exception
+    {
+        fireWallService.closeAll();
         frpService.killAllProcesses();
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.astral.astral4xserver.been.AesUtils.generateKey;
 import static org.astral.astral4xserver.controller.ApiClientBase.authCacheService;
 
 
@@ -88,7 +89,7 @@ public class ApiUserBase {
         if (user == null) {
             return new ApiResponse(400, "User not found");
         }
-        user.setToken(AesUtils.encrypt(user.getUsername(), AesUtils.generateKey(128)));
+        user.setToken(AesUtils.encrypt(user.getUsername()+ new Random(10000), generateKey(128)));
         userRepository.save(user);
         return new ApiResponse(200, "User activated successfully");
     }
@@ -189,7 +190,7 @@ public class ApiUserBase {
         }
         new Thread(() -> {
             try {
-                String url = AesUtils.encrypt(email + new Random(1000), AesUtils.generateKey(128));
+                String url = AesUtils.encrypt(email + new Random(1000), generateKey(128));
                 url = url.substring(0, 6);
                 stringCacheService.setData(email,url);
                 mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "密码更改", "http://" + host + "/api/users/updateNum?"+ "email=" + email + "&email_auth=" + url + "&password=" + password);
@@ -217,5 +218,24 @@ public class ApiUserBase {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    //更新用户api_token
+    @PostMapping("/updateToken")
+    public ApiResponse updateToken(@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+        if (!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ApiResponse(401, "未认证");
+        }
+        try {
+            User currentUser = (User) authentication.getPrincipal();
+            currentUser.setToken(AesUtils.encrypt(currentUser.getUsername() + new Random(10000), generateKey(128)));
+        }catch (Exception e) {
+            return null;
+        }
+        return new ApiResponse(200, "已更新api_token");
     }
 }

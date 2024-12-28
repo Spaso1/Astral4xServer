@@ -5,6 +5,7 @@ import org.astral.astral4xserver.been.User;
 import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.RoleRepository;
 import org.astral.astral4xserver.dao.UserRepository;
+import org.astral.astral4xserver.service.FireWallService;
 import org.astral.astral4xserver.service.FrpService;
 import org.astral.astral4xserver.util.DailyKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,8 @@ public class ApiFrpBase {
     private AuthenticationManager authenticationManager;
     @Autowired
     private FrpService frpService;
+    @Autowired
+    private FireWallService fireWallService;
     @GetMapping("/frp")
     public List<FrpProp> findByUseId(@RequestHeader(value = "X-Auth", required = true) String xAuth) {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
@@ -64,7 +67,6 @@ public class ApiFrpBase {
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {return null;}
-
         String currentUserName = authentication.getName();
         Optional<User> currentUser = userRepository.findByUsername(currentUserName);
         int id = currentUser.get().getId().intValue();
