@@ -37,6 +37,7 @@ public class FrpService implements Runnable {
 
             while (flag) {
                 try {
+                    TimeUnit.SECONDS.sleep(2);
                     File file = new File(".//a4xs//frpwinamd64//frpc.json");
                     if (file.exists()) {
                         file.delete();
@@ -45,7 +46,6 @@ public class FrpService implements Runnable {
                     if (file.exists()) {
                         file.delete();
                     }
-                    TimeUnit.SECONDS.sleep(1);
                 } catch (InterruptedException e) {
 
                     Thread.currentThread().interrupt();

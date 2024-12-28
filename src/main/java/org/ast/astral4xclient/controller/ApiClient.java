@@ -54,7 +54,7 @@ public class ApiClient {
         return new ApiMessage(0, "ok");
     }
     @GetMapping("/launch")
-    public ApiMessage launch() throws IOException {
+    public static ApiMessage launch() throws IOException {
         ApiMessage apiMessage = new ApiMessage(0, "ok");
         OkHttp3 okHttp3 = new OkHttp3();
         String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);

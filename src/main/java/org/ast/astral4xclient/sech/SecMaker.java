@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +21,11 @@ import static org.ast.astral4xclient.service.FrpService.killPlainProcess;
 
 @Component
 public class SecMaker {
+    @Scheduled(cron = "0 0 4 * * ?")
+    public void restartFrps() throws Exception {
+        killPlainProcess();
+        ApiClient.launch();
+    }
     @Scheduled(fixedRate = 60000)
     public void updateAuth() throws IOException {
         if(!(auth==null)) {
