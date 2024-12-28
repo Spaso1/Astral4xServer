@@ -19,7 +19,10 @@ public class FireWallService {
         }
     }
     public void closePortByName(String name) {
-        FireWall.closePort(ports.get(name));
+        if(ports.containsKey(name)) {
+            FireWall.closePort(ports.get(name));
+            ports.remove(name);
+        }
     }
     public Map<String, Integer> getPorts() {
         return ports;

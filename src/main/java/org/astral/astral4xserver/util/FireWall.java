@@ -80,7 +80,7 @@ public class FireWall {
                 new ProcessBuilder(command).start();
                 return;
             }
-            String[] command = {"netsh", "advfirewall", "firewall", action, "rule", "name=Port" + port};
+            String[] command = {"netsh", "advfirewall", "firewall", action, "rule", "name=Port" + port, "dir=in", "action=allow", "protocol=TCP", "localport=" + port};
             Process process = new ProcessBuilder(command).start();
             logProcessOutput(process);
             int exitCode = process.waitFor();
