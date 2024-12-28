@@ -1,5 +1,6 @@
 package org.astral.astral4xserver.controller;
 
+import org.astral.astral4xserver.been.Auth;
 import org.astral.astral4xserver.been.FrpProp;
 import org.astral.astral4xserver.been.User;
 import org.astral.astral4xserver.dao.FrpPropRepository;
@@ -22,6 +23,8 @@ import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+
+import static org.astral.astral4xserver.controller.ApiClientBase.authCacheService;
 
 @CrossOrigin(origins = "https://4x.ink")
 @RefreshScope
@@ -137,11 +140,15 @@ public class ApiFrpBase {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/frpKey")
-    public String getFrpKey(@RequestHeader(value = "X-Auth", required = true) String xAuth) throws SocketException, NoSuchAlgorithmException {
+    public String getFrpKey(@RequestHeader(value = "X-Auth", required = true) String xAuth,@RequestBody Auth auth) throws SocketException, NoSuchAlgorithmException {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
-        return DailyKeyGenerator.generateDailyKey();
+        if(authCacheService.getData(auth.getToken()).getX_auth().equals(auth.getX_auth())) {
+            return DailyKeyGenerator.generateDailyKey();
+        }else {
+            return "123456SHABI";
+        }
     }
 
     @GetMapping("/test/frpLaunchWin")
