@@ -65,6 +65,10 @@ public class ApiFrpBase {
         if(!frpProp.allisnotNull()) {
             return new FrpProp();
         }
+        //限制remotePort
+        if(frpProp.getRemotePort()<10000||frpProp.getRemotePort()>65535) {
+            return new FrpProp();
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {return null;}
         String currentUserName = authentication.getName();
@@ -81,6 +85,9 @@ public class ApiFrpBase {
             return null;
         }
         if(!updatedFrpProp.allisnotNull()) {
+            return null;
+        }
+        if(updatedFrpProp.getRemotePort()<10000||updatedFrpProp.getRemotePort()>65535) {
             return null;
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
