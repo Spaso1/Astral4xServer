@@ -60,7 +60,8 @@ public class ApiClient {
         String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, null);
+        String json = new Gson().toJson(auth);
+        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, json);
         frpJSON = new FrpJSON();
         frpJSON.setServerAddr(returnHost().split(",")[0]);
         frpJSON.setServerPort(Integer.parseInt(returnHost().split(",")[1]));
@@ -120,7 +121,8 @@ public class ApiClient {
         String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
-        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, null);
+        String json = new Gson().toJson(auth);
+        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, json);
         frpJSON = new FrpJSON();
         frpJSON.setServerAddr(returnHost().split(",")[0]);
         frpJSON.setServerPort(Integer.parseInt(returnHost().split(",")[1]));
