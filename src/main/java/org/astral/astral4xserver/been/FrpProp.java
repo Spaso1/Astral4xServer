@@ -23,6 +23,16 @@ public class FrpProp {
     private int localPort;
     private int remotePort;
     private String remoteHost;
+    private int frpserver_id;
+
+    public int getFrpserver_id() {
+        return frpserver_id;
+    }
+
+    public void setFrpserver_id(int frpserver_id) {
+        this.frpserver_id = frpserver_id;
+    }
+
     public String getRemoteHost() {
         return remoteHost;
     }

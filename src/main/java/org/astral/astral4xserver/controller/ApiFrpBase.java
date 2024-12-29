@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.astral.astral4xserver.controller.ApiClientBase.authCacheService;
 
@@ -61,7 +60,7 @@ public class ApiFrpBase {
         return frpPropRepository.findByUserId(id);
     }
     @PostMapping("/frp")
-    public FrpProp saveFrpProp(@RequestBody FrpProp frpProp,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
+    public FrpProp saveFrpProp(@RequestBody FrpProp frpProp,@RequestHeader(value = "X-Auth", required = true) String xAuth) throws SocketException, NoSuchAlgorithmException {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return new FrpProp();
         }
@@ -71,6 +70,12 @@ public class ApiFrpBase {
         //限制remotePort
         if(frpProp.getRemotePort()<10000||frpProp.getRemotePort()>65535) {
             return new FrpProp();
+        }
+        Optional<FrpProp> ifcontainname = frpPropRepository.findByName(frpProp.getName());
+        if (ifcontainname.isPresent()) {
+            FrpProp frpProp1 = new FrpProp();
+            frpProp1.setName("重复名称");
+            return frpProp1;
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {return null;}
@@ -106,9 +111,13 @@ public class ApiFrpBase {
         Optional<FrpProp> optionalFrpProp = frpPropRepository.findById(updatedFrpProp.getId());
         if (optionalFrpProp.isPresent()) {
             FrpProp frpProp = optionalFrpProp.get();
-
+            if(!(frpProp.getName().equals(updatedFrpProp.getName()))) {
+                if(frpPropRepository.findByName(updatedFrpProp.getName()).isPresent()) {
+                    return null;
+                }
+            }
             // 更新 FrpProp 实体的属性
-            frpProp.setName(updatedFrpProp.getName());
+            frpProp.setName(frpProp.getName());
             frpProp.setType(updatedFrpProp.getType());
             frpProp.setLocalIP(updatedFrpProp.getLocalIP());
             frpProp.setLocalPort(updatedFrpProp.getLocalPort());
