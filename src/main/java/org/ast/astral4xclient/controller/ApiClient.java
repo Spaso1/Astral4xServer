@@ -29,6 +29,7 @@ import static org.ast.astral4xclient.service.FrpService.killPlainProcess;
 
 @RestController
 @RequestMapping("/api/client")
+@CrossOrigin(origins = "https://www.4x.ink/")
 public class ApiClient {
     public static Thread thread;
     public static FrpService service;
@@ -61,7 +62,7 @@ public class ApiClient {
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
         String json = new Gson().toJson(auth);
-        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, json);
+        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "POST", map, json);
         frpJSON = new FrpJSON();
         frpJSON.setServerAddr(returnHost().split(",")[0]);
         frpJSON.setServerPort(Integer.parseInt(returnHost().split(",")[1]));
@@ -122,7 +123,7 @@ public class ApiClient {
         Map<String, String> map = new HashMap<>();
         map.put("X-Auth", head);
         String json = new Gson().toJson(auth);
-        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "GET", map, json);
+        String key = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "POST", map, json);
         frpJSON = new FrpJSON();
         frpJSON.setServerAddr(returnHost().split(",")[0]);
         frpJSON.setServerPort(Integer.parseInt(returnHost().split(",")[1]));
