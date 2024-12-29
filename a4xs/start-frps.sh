@@ -1,1 +1,1 @@
-.//a4xs//frpwinamd64//frps -c .//a4xs//frps.json
+.//a4xs//frplinuxamd64//frps -c .//a4xs//frplinuxamd64//frps.json

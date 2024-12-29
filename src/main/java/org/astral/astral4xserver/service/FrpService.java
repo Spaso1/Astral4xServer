@@ -21,7 +21,7 @@ public class FrpService {
         if (sys.contains("Windows")) {
             startFrpsWin();
         } else {
-            executeCommand(".//a4xs//stop-frps.sh");
+            executeCommand(".//a4xs//start-frps.sh");
         }
     }
 

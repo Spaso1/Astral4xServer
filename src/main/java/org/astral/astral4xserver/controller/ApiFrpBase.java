@@ -139,7 +139,7 @@ public class ApiFrpBase {
         frpPropRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("/frpKey")
+    @PostMapping("/frpKey")
     public String getFrpKey(@RequestHeader(value = "X-Auth", required = true) String xAuth,@RequestBody Auth auth) throws SocketException, NoSuchAlgorithmException {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;

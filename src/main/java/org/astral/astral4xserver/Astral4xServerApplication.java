@@ -55,8 +55,8 @@ public class Astral4xServerApplication {
         } catch (Exception e) {
             e.printStackTrace(); // 添加异常处理
         }
-        frpService.startFrpsWin();
-        //frpService.startFrps();
+        //frpService.startFrpsWin();
+        frpService.startFrps();
     }
     @PreDestroy
     public void destroy() throws Exception
