@@ -1,6 +1,7 @@
 package org.astral.astral4xserver.been;
 
 import com.sun.istack.NotNull;
+import net.bytebuddy.implementation.bind.annotation.Default;
 
 import javax.persistence.*;
 
@@ -22,8 +23,18 @@ public class FrpProp {
     private String localIP;
     private int localPort;
     private int remotePort;
+    @NotNull
     private String remoteHost;
     private int frpserver_id;
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public int getFrpserver_id() {
         return frpserver_id;

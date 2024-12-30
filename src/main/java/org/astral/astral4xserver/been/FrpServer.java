@@ -7,7 +7,6 @@ import javax.persistence.*;
 @Entity
 @Table(name = "frpservers")
 public class FrpServer {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -17,7 +16,6 @@ public class FrpServer {
     @NotNull
     @Column(name = "port")
     private String port;
-
     public long getId() {
         return id;
     }

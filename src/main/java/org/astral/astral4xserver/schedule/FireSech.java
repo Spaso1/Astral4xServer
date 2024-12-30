@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.astral.astral4xserver.been.FrpProp;
 import org.astral.astral4xserver.been.FrpServerBoard;
 import org.astral.astral4xserver.been.FrpServerBoards;
+import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.UserFrpUpdate;
 import org.astral.astral4xserver.service.FireWallService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ import static org.astral.astral4xserver.Astral4xServerApplication.frp_host;
 public class FireSech {
     @Autowired
     private FireWallService fireWallService;
+    @Autowired
+    private FrpPropRepository frpPropRepository;
     private static final Logger logger = org.apache.logging.log4j.LogManager.getLogger(FireSech.class);
     @Scheduled(fixedRate = 3000)
     public void updatePort() {
@@ -49,9 +52,11 @@ public class FireSech {
                 String status = proxy.getStatus();
                 //logger.info("name: " + pro_name + " status: " + status);
                 if(status.equals("online")) {
+                    frpPropRepository.updateStatusById(pro_name,"上线");
                     fireWallService.openPort(pro_name,proxy.getConf().getRemotePort());
                 }
                 if (status.equals("offline")) {
+                    frpPropRepository.updateStatusById(pro_name,"下线");
                     fireWallService.closePortByName(pro_name);
                 }
             }

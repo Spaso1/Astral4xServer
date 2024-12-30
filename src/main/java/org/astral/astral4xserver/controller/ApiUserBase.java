@@ -78,7 +78,7 @@ public class ApiUserBase {
         ApiResponse apiResponse = new ApiResponse(200, "User registered successfully , please auth your email!");
         String finalUrl = url;
         new Thread(()->{
-            mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "欢迎注册，请访问下面链接激活账户：http://" + host+ "/api/users/auth/" + finalUrl, "http://" + host+ "/api/users/auth/" + finalUrl);
+            mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "欢迎注册，请访问下面链接激活账户：http://" + host+ "/api/users/auth/" + finalUrl, host+ "/api/users/auth/" + finalUrl);
         }).start();
         logger.info("http://" + host+ "/api/users/auth/" + url);
         return apiResponse;
@@ -90,6 +90,10 @@ public class ApiUserBase {
             return new ApiResponse(400, "User not found");
         }
         user.setToken(AesUtils.encrypt(user.getUsername()+ new Random(10000), generateKey(128)));
+        user.setDownStream(5242880);
+        user.setUpdateStream(5242880);
+        user.setCountStream(1000000000);
+        user.setMax_frp(5);
         userRepository.save(user);
         return new ApiResponse(200, "User activated successfully");
     }
@@ -136,17 +140,15 @@ public class ApiUserBase {
         Optional<User> user = userRepository.findByToken(auth1.getToken());
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).build());
     }
-    /**
-     *     @DeleteMapping("/{id}")
+    /*
+          @DeleteMapping("/{id}")
      *     public void deleteUser(@PathVariable long id) {
      *         userRepository.deleteById(id);
      *     }
      */
 
     /**
-     * @PutMapping
-     * @param updatedUser
-     * @return
+     * &#064;PutMapping
      */
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@RequestBody User updatedUser,@RequestHeader(value = "X-Auth", required = true) String xAuth) {
@@ -159,7 +161,7 @@ public class ApiUserBase {
         }
         try {
             User currentUser = (User) authentication.getPrincipal();
-            if(!(currentUser.getId()== updatedUser.getId())) {
+            if(!(Objects.equals(currentUser.getId(), updatedUser.getId()))) {
                 return ResponseEntity.status(403).build();
             }
         }catch (Exception e) {
@@ -193,7 +195,7 @@ public class ApiUserBase {
                 String url = AesUtils.encrypt(email + new Random(1000), generateKey(128));
                 url = url.substring(0, 6);
                 stringCacheService.setData(email,url);
-                mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "密码更改", "http://" + host + "/api/users/updateNum?"+ "email=" + email + "&email_auth=" + url + "&password=" + password);
+                mailService.sendSimpleMail("astralpath@163.com", email, "astralpath@163.com", "密码更改", host + "/api/users/updateNum?"+ "email=" + email + "&email_auth=" + url + "&password=" + password);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
