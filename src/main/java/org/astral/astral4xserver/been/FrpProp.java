@@ -27,6 +27,24 @@ public class FrpProp {
     private String remoteHost;
     private int frpserver_id;
     private String status;
+    private long stream;
+    private long streamTotal;
+
+    public long getStreamTotal() {
+        return streamTotal;
+    }
+
+    public void setStreamTotal(long streamTotal) {
+        this.streamTotal = streamTotal;
+    }
+
+    public long getStream() {
+        return stream;
+    }
+
+    public void setStream(long stream) {
+        this.stream = stream;
+    }
 
     public String getStatus() {
         return status;

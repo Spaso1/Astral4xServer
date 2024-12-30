@@ -20,5 +20,9 @@ public interface FrpPropRepository extends JpaRepository<FrpProp, Long> {
     void updateStatusById(String name, String status);
     @Query("UPDATE FrpProp f SET f.status = :status")
     void updateStatusAll(String status);
+    @Query("UPDATE FrpProp f SET f.stream = :stream WHERE f.name = :name")
+    void updateStreamByName(String name, long stream);
+    @Query("UPDATE FrpProp f SET f.streamTotal = f.streamTotal + :increment WHERE f.name = :name")
+    void updateStreamTotalByName(String name, long increment);
     // Custom query methods can be defined here
 }

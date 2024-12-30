@@ -78,6 +78,8 @@ public class FrpScheduler {
             List<FrpServerBoards> proxies = frpServerBoard.getProxies();
             for (FrpServerBoards proxy : proxies) {
                 String pro_name = proxy.getName();
+                frpPropRepository.updateStreamByName(pro_name, proxy.getTodayTrafficOut());
+                frpPropRepository.updateStreamTotalByName(pro_name, proxy.getTodayTrafficIn());
                 if (!streamMap.containsKey(pro_name)) {
                     FrpProp frpProp = frpPropRepository.findByName(pro_name).orElse(null);
                     streamMap.put(pro_name, proxy.getTodayTrafficOut());
