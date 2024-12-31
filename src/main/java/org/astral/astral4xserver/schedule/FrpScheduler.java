@@ -10,6 +10,7 @@ import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.UserFrpUpdate;
 import org.astral.astral4xserver.service.FrpService;
 import org.astral.astral4xserver.util.DailyKeyGenerator;
+import org.astral.astral4xserver.util.OkHttp3;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,12 +24,9 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.astral.astral4xserver.Astral4xServerApplication.frp_host;
+import static org.astral.astral4xserver.Astral4xServerApplication.*;
 
 @Component
 public class FrpScheduler {
@@ -39,22 +37,42 @@ public class FrpScheduler {
     private Map<String ,Long> streamMap = new java.util.HashMap<>();
     // 每天早上4点执行
     @Scheduled(cron = "0 0 0 * * ?")
-    public void restartFrps() throws SocketException, NoSuchAlgorithmException {
+    public void restartFrps() throws IOException, NoSuchAlgorithmException {
         frpService.stopFrps();
         File frpsFile = new File(".//a4xs//frplinuxamd64//frps.json");
         Gson gson = new Gson();
         ServerConfig serverConfig = new ServerConfig();
         serverConfig.setBindPort(7000);
-        String dailyKey = DailyKeyGenerator.generateDailyKey();
-        serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
-        serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
-        String json = gson.toJson(serverConfig);
-        try {
-            PrintWriter pw = new PrintWriter(frpsFile);
-            pw.write(json);
-            pw.close();
-        }catch (Exception e) {}
-        frpService.startFrps();
+        if(frp_serverId==2) {
+            OkHttp3 okHttp3 = new OkHttp3();
+            String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
+            Map<String, String> map = new HashMap<>();
+            map.put("X-Auth", head);
+            Auth auth = new Auth();
+            auth.setX_auth("yr3f7evsd98832rfy98uf397");
+            String json = new Gson().toJson(auth);
+            String dailyKey = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "POST", map, json);
+            serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
+            serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
+            String json2 = gson.toJson(serverConfig);
+            try {
+                PrintWriter pw = new PrintWriter(frpsFile);
+                pw.write(json2);
+                pw.close();
+            }catch (Exception e) {}
+            frpService.startFrps();
+        }else {
+            String dailyKey = DailyKeyGenerator.generateDailyKey();
+            serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
+            serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
+            String json = gson.toJson(serverConfig);
+            try {
+                PrintWriter pw = new PrintWriter(frpsFile);
+                pw.write(json);
+                pw.close();
+            }catch (Exception e) {}
+            frpService.startFrps();
+        }
     }
     //每5秒执行一次
     @Scheduled(fixedRate = 10000)

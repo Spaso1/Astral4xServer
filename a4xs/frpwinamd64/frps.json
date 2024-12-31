@@ -1,1 +1,1 @@
-{"bindPort":7000,"auth":{"method":"token","token":"00938ae00662d6fc384ca8249abbda796bcee21d2bb7d8f705101d9e872aff57"},"webServer":{"addr":"127.0.0.1","port":7500,"user":"asdfghjkl","password":"asdfghjkl"}}
+{"bindPort":7000,"auth":{"method":"token","token":"4a5cb01c60c27e7b5d098a26b14bde4c4226fe3da87ec6de68b03ca671ace63f"},"webServer":{"addr":"127.0.0.1","port":7500,"user":"asdfghjkl","password":"asdfghjkl"}}
