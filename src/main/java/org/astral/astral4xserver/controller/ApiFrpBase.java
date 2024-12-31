@@ -104,7 +104,7 @@ public class ApiFrpBase {
         String currentUserName = authentication.getName();
         Optional<User> currentUser = userRepository.findByUsername(currentUserName);
         int id = currentUser.get().getId().intValue();
-        if (!(updatedFrpProp.getId()==id)) {
+        if (!(updatedFrpProp.getUserId()==id)) {
             return null;
         }
         // 从数据库中检索要更新的 FrpProp 实体

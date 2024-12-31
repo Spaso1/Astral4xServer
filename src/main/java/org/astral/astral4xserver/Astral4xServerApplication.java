@@ -9,6 +9,7 @@ import org.astral.astral4xserver.service.FrpPropService;
 import org.astral.astral4xserver.service.FrpService;
 import org.astral.astral4xserver.util.DailyKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -26,18 +27,17 @@ import java.security.NoSuchAlgorithmException;
 public class Astral4xServerApplication {
     @Autowired
     private FireWallService fireWallService;
-
     private static FrpService frpService = new FrpService();
     @Autowired
     private FrpPropRepository frpPropService;
+    @Value("${frp.serverId}")
+    public static int frp_serverId;
     public static String frp_host = "127.0.0.1";
     public static void main(String[] args) throws SocketException, NoSuchAlgorithmException {
         new Thread(()->{
             try {
                 launchFrps();
-            } catch (SocketException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchAlgorithmException e) {
+            } catch (SocketException | NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
         }).start();
@@ -64,8 +64,7 @@ public class Astral4xServerApplication {
         frpService.startFrps();
     }
     @PreDestroy
-    public void destroy() throws Exception
-    {
+    public void destroy() throws Exception {
         frpPropService.updateStatusAll("下线");
         fireWallService.closeAll();
         frpService.killAllProcesses();

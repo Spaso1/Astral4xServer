@@ -38,7 +38,7 @@ public class FrpScheduler {
     private FrpPropRepository frpPropRepository;
     private Map<String ,Long> streamMap = new java.util.HashMap<>();
     // 每天早上4点执行
-    @Scheduled(cron = "0 0 4 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void restartFrps() throws SocketException, NoSuchAlgorithmException {
         frpService.stopFrps();
         File frpsFile = new File(".//a4xs//frplinuxamd64//frps.json");
@@ -79,7 +79,7 @@ public class FrpScheduler {
             for (FrpServerBoards proxy : proxies) {
                 String pro_name = proxy.getName();
                 frpPropRepository.updateStreamByName(pro_name, proxy.getTodayTrafficOut());
-                frpPropRepository.updateStreamTotalByName(pro_name, proxy.getTodayTrafficIn());
+                frpPropRepository.updateStreamTotalByName(pro_name, proxy.getTodayTrafficOut());
                 if (!streamMap.containsKey(pro_name)) {
                     FrpProp frpProp = frpPropRepository.findByName(pro_name).orElse(null);
                     streamMap.put(pro_name, proxy.getTodayTrafficOut());

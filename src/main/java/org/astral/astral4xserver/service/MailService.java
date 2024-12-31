@@ -13,7 +13,6 @@ import javax.mail.internet.MimeMessage;
 public class MailService {
     @Autowired
     private JavaMailSender javaMailSender;
-
     public void sendSimpleMail(String from, String to, String cc, String subject, String content) {
         SimpleMailMessage simpMsg = new SimpleMailMessage();
         simpMsg.setFrom(from);
@@ -23,7 +22,6 @@ public class MailService {
         simpMsg.setText(content);
         javaMailSender.send(simpMsg);
     }
-
     public void sendHtmlMail(String from, String to, String cc, String subject, String content) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
