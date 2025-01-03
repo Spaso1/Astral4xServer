@@ -37,42 +37,52 @@ public class FrpScheduler {
     private Map<String ,Long> streamMap = new java.util.HashMap<>();
     // 每天早上4点执行
     @Scheduled(cron = "0 0 0 * * ?")
-    public void restartFrps() throws IOException, NoSuchAlgorithmException {
-        frpService.stopFrps();
-        File frpsFile = new File(".//a4xs//frplinuxamd64//frps.json");
-        Gson gson = new Gson();
-        ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setBindPort(7000);
-        if(frp_serverId==2) {
-            OkHttp3 okHttp3 = new OkHttp3();
-            String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
-            Map<String, String> map = new HashMap<>();
-            map.put("X-Auth", head);
-            Auth auth = new Auth();
-            auth.setX_auth("yr3f7evsd98832rfy98uf397");
-            String json = new Gson().toJson(auth);
-            String dailyKey = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "POST", map, json);
-            serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
-            serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
-            String json2 = gson.toJson(serverConfig);
+    public void restartFrps()  {
+        new Thread(() -> {
             try {
-                PrintWriter pw = new PrintWriter(frpsFile);
-                pw.write(json2);
-                pw.close();
-            }catch (Exception e) {}
-            frpService.startFrps();
-        }else {
-            String dailyKey = DailyKeyGenerator.generateDailyKey();
-            serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
-            serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
-            String json = gson.toJson(serverConfig);
-            try {
-                PrintWriter pw = new PrintWriter(frpsFile);
-                pw.write(json);
-                pw.close();
-            }catch (Exception e) {}
-            frpService.startFrps();
-        }
+                frpService.stopFrps();
+                File frpsFile = new File(".//a4xs//frplinuxamd64//frps.json");
+                Gson gson = new Gson();
+                ServerConfig serverConfig = new ServerConfig();
+                serverConfig.setBindPort(7000);
+                if (frp_serverId == 2) {
+                    OkHttp3 okHttp3 = new OkHttp3();
+                    String head = okHttp3.sendRequest(host_web + ":" + port_web + "/api/safe/getAuth", "GET", null, null);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("X-Auth", head);
+                    Auth auth = new Auth();
+                    auth.setX_auth("yr3f7evsd98832rfy98uf397");
+                    String json = new Gson().toJson(auth);
+                    String dailyKey = okHttp3.sendRequest(host_web + ":" + port_web + "/api/frpc/frpKey", "POST", map, json);
+                    System.out.println(dailyKey);
+                    serverConfig.setAuth(new ServerConfig.Auth("token", dailyKey));
+                    serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
+                    String json2 = gson.toJson(serverConfig);
+                    try {
+                        PrintWriter pw = new PrintWriter(frpsFile);
+                        pw.write(json2);
+                        pw.close();
+                    } catch (Exception e) {
+                    }
+                    frpService.startFrps();
+                } else {
+                    String dailyKey = DailyKeyGenerator.generateDailyKey();
+                    System.out.println(dailyKey);
+                    serverConfig.setAuth(new ServerConfig.Auth("token", dailyKey));
+                    serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
+                    String json = gson.toJson(serverConfig);
+                    try {
+                        PrintWriter pw = new PrintWriter(frpsFile);
+                        pw.write(json);
+                        pw.close();
+                    } catch (Exception e) {
+                    }
+                    frpService.startFrps();
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
     //每5秒执行一次
     @Scheduled(fixedRate = 10000)

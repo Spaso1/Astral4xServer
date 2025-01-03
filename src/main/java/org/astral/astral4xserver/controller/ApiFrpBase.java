@@ -1,14 +1,14 @@
 package org.astral.astral4xserver.controller;
 
-import org.astral.astral4xserver.been.Auth;
-import org.astral.astral4xserver.been.FrpProp;
-import org.astral.astral4xserver.been.User;
+import com.google.gson.Gson;
+import org.astral.astral4xserver.been.*;
 import org.astral.astral4xserver.dao.FrpPropRepository;
 import org.astral.astral4xserver.dao.RoleRepository;
 import org.astral.astral4xserver.dao.UserRepository;
 import org.astral.astral4xserver.service.FireWallService;
 import org.astral.astral4xserver.service.FrpService;
 import org.astral.astral4xserver.util.DailyKeyGenerator;
+import org.astral.astral4xserver.util.OkHttp3;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -19,10 +19,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static org.astral.astral4xserver.Astral4xServerApplication.*;
+import static org.astral.astral4xserver.Astral4xServerApplication.frp_host;
 import static org.astral.astral4xserver.controller.ApiClientBase.authCacheService;
 
 @CrossOrigin(origins = "https://4x.ink")
@@ -153,7 +157,7 @@ public class ApiFrpBase {
         if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
             return null;
         }
-        if(auth.getX_auth()=="yr3f7evsd98832rfy98uf397") {
+        if(auth.getX_auth().equals("yr3f7evsd98832rfy98uf397")) {
             return DailyKeyGenerator.generateDailyKey();
         }
         if(authCacheService.getData(auth.getToken()).getX_auth().equals(auth.getX_auth())) {
@@ -162,10 +166,58 @@ public class ApiFrpBase {
             return "123456SHABI";
         }
     }
-
-    @GetMapping("/test/frpLaunchWin")
-    public String frpLaunchWin() {
-        frpService.startFrpsWin();
-        return "ok";
+    @GetMapping("/frpRestart")
+    public String frpRestart(@RequestHeader(value = "X-Auth", required = true) String xAuth,String password) {
+        if(!xAuth.equals(ApiSecurityAuth.getAuth())) {
+            return null;
+        }
+        if(password.equals("我求求你重启吧,我什么都愿意做的")) {
+            new Thread(() -> {
+                try {
+                    frpService.stopFrps();
+                    File frpsFile = new File(".//a4xs//frplinuxamd64//frps.json");
+                    Gson gson = new Gson();
+                    ServerConfig serverConfig = new ServerConfig();
+                    serverConfig.setBindPort(7000);
+                    if (frp_serverId == 2) {
+                        OkHttp3 okHttp3 = new OkHttp3();
+                        String head = okHttp3.sendRequest(host_web + ":" + port_web + "/api/safe/getAuth", "GET", null, null);
+                        Map<String, String> map = new HashMap<>();
+                        map.put("X-Auth", head);
+                        Auth auth = new Auth();
+                        auth.setX_auth("yr3f7evsd98832rfy98uf397");
+                        String json = new Gson().toJson(auth);
+                        String dailyKey = okHttp3.sendRequest(host_web + ":" + port_web + "/api/frpc/frpKey", "POST", map, json);
+                        System.out.println(dailyKey);
+                        serverConfig.setAuth(new ServerConfig.Auth("token", dailyKey));
+                        serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
+                        String json2 = gson.toJson(serverConfig);
+                        try {
+                            PrintWriter pw = new PrintWriter(frpsFile);
+                            pw.write(json2);
+                            pw.close();
+                        } catch (Exception e) {
+                        }
+                        frpService.startFrps();
+                    } else {
+                        String dailyKey = DailyKeyGenerator.generateDailyKey();
+                        System.out.println(dailyKey);
+                        serverConfig.setAuth(new ServerConfig.Auth("token", dailyKey));
+                        serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
+                        String json = gson.toJson(serverConfig);
+                        try {
+                            PrintWriter pw = new PrintWriter(frpsFile);
+                            pw.write(json);
+                            pw.close();
+                        } catch (Exception e) {
+                        }
+                        frpService.startFrps();
+                    }
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+        return "yes";
     }
 }

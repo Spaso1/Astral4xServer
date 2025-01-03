@@ -14,7 +14,8 @@ public interface FrpPropRepository extends JpaRepository<FrpProp, Long> {
     Optional<FrpProp> findByName(String name);
     List<FrpProp> findByUserId(int userId);
     void deleteById(@NotNull Long id);
-
+    List<FrpProp> getAll();//250103,未测试
+    void updateById(FrpProp frpProp);//250103,未测试
     @Modifying
     @Transactional
     @Query("UPDATE FrpProp f SET f.status = :status WHERE f.name = :name")
@@ -35,4 +36,8 @@ public interface FrpPropRepository extends JpaRepository<FrpProp, Long> {
     @Query("UPDATE FrpProp f SET f.streamTotal = f.streamTotal + :increment WHERE f.name = :name")
     void updateStreamTotalByName(String name, long increment);
     // Custom query methods can be defined here
+    @Modifying
+    @Transactional
+    @Query("SELECT f FROM FrpProp f WHERE f.status = :status")
+    List<FrpProp> findFrpPropsByStatus(String status);
 }

@@ -127,6 +127,10 @@ public class ApiUserBase {
 
         String currentUserName = authentication.getName();
         Optional<User> currentUser = userRepository.findByUsername(currentUserName);
+        if(!currentUser.isPresent()) {
+            User user = currentUser.get();
+            user.setPassword("[LOCK]");
+        }
         return currentUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).build());
     }
     @PostMapping("/findByAuth")

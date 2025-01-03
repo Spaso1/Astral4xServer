@@ -38,13 +38,27 @@ public class Astral4xServerApplication {
     @Value("${frp.serverId}")
     public static int frp_serverId;
     public static String frp_host = "127.0.0.1";
-    public static String host_web;
-    public static int port_web;
+    public static String host_web = "http://121.41.121.48";
+    public static int port_web = 8070;
     public static void main(String[] args) throws SocketException, NoSuchAlgorithmException {
+        Map<String, String> map = new HashMap<>();
+        for (int x = 0;x<args.length;x++) {
+            String[] b = args[x].split("=");
+            map.put(b[0],b[1]);
+        }
+        if(map.containsKey("frp_serverId")) {
+            frp_serverId = Integer.parseInt(map.get("frp_serverId"));
+        }else {
+            frp_serverId=1;
+        }
+
         new Thread(()->{
             try {
+                Thread.sleep(10000);
                 launchFrps();
             } catch (NoSuchAlgorithmException | IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }).start();
@@ -57,6 +71,7 @@ public class Astral4xServerApplication {
         ServerConfig serverConfig = new ServerConfig();
         serverConfig.setBindPort(7000);
         if(frp_serverId==2) {
+            System.out.println("作为从服务端启动");
             OkHttp3 okHttp3 = new OkHttp3();
             String head = okHttp3.sendRequest(host_web + ":"+port_web + "/api/safe/getAuth", "GET", null, null);
             Map<String, String> map = new HashMap<>();
@@ -65,6 +80,7 @@ public class Astral4xServerApplication {
             auth.setX_auth("yr3f7evsd98832rfy98uf397");
             String json = new Gson().toJson(auth);
             String dailyKey = okHttp3.sendRequest(host_web + ":"+port_web + "/api/frpc/frpKey", "POST", map, json);
+            System.out.println(dailyKey);
             serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
             serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
             String json2 = gson.toJson(serverConfig);
@@ -75,6 +91,7 @@ public class Astral4xServerApplication {
             }catch (Exception e) {}
             frpService.startFrps();
         }else {
+            System.out.println("frp_serverId:"+frp_serverId);
             String dailyKey = DailyKeyGenerator.generateDailyKey();
             serverConfig.setAuth(new ServerConfig.Auth("token",dailyKey));
             serverConfig.setWebServer(new WebServerConfig(frp_host, 7500, "asdfghjkl", "asdfghjkl"));
